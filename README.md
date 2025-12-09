@@ -50,29 +50,41 @@ Go to the Restate UI at `http://localhost:9070`. Click on `register deployment`.
 
 ![Register service](https://raw.githubusercontent.com/restatedev/ai-examples/refs/heads/main/google-adk/example/docs/images/register_deployment.png)
 
-Click on the `run` handler of the `ClaimAgent` service and send a request for less than 1000USD, for example:
-`"Reimburse my hotel for my business trip of 5 nights for 800USD of 24/04/2025"`
-In the key field, fill in a session ID:
+Click on the `run` handler of the `ClaimAgent` service, fill in the `key` field with the customer ID, and send the default request:
 
-<img src="img.png" alt="Send request" width="1000px"/>
+<img src="doc/playground.png" alt="Send request" width="1000px"/>
 
 In the invocations tab, you see the execution journal when clicking on the invocation ID:
 
-<img src="img_1.png" alt="See journal" width="1000px"/>
+<img src="doc/journal.png" alt="See journal" width="1000px"/>
 
 ## Try out Durable Execution with a human approval example
 
 You can try out durable execution with a human approval example. Send a request for more than 1000USD, for example:
-`"Reimburse my hotel for my business trip of 5 nights for 1500USD of 24/04/2025"`
+`"Reimburse my hotel for my business trip of 5 nights for 1800USD of 24/04/2025"`
 
-While the agent is running, you can kill it (CTRL+C) and restart it, and the execution will resume from where it left off.
+The agent will pause and wait for human approval before proceeding with the reimbursement.
 
-In the invocations tab, you see that the agent is waiting for human approval:
-<img src="img_2.png" alt="Waiting for approval" width="1000px"/>
+<img src="doc/suspension.png" alt="Waiting for approval" width="1000px"/>
 
-To approve the request, copy over the curl command that was printed in the service logs, and run it in your terminal. For example:
+While the agent is running, you can kill it (CTRL+C) and restart it. Once we approve the request, the agent will continue its execution from where it left off.
+
+To approve the request, copy over the curl command that was printed in the service logs, and run it in your terminal. For example: 
+
 ```bash
 curl localhost:8080/restate/awakeables/sign_.../resolve --json 'true'
 ```
 
 After approval, the agent will continue its execution and complete the reimbursement process.
+
+<img src="doc/completed.png" alt="Waiting for approval" width="1000px"/>
+
+**Note**: While the agent is waiting for the approval, it will automatically suspend itself after one minute.
+Restate stores the agent state durably, so you can stop the agent process and restart it later without losing progress.
+Once Restate receives the approval, it will wake up the agent and let it continue from where it left off.
+
+
+## Next Steps
+
+- Learn more about building resilient AI applications from the [Restate AI documentation](https://docs.restate.dev/ai).
+- Check out the [Google ADK documentation](https://google.github.io/adk-docs/) to learn more about building AI workflows with Google ADK.

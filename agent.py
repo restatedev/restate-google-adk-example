@@ -1,19 +1,18 @@
-from typing import final
-
 import restate
 
+from pydantic import BaseModel
 from google.adk import Runner
 from google.adk.agents.llm_agent import Agent
 from google.adk.apps import App
 from google.adk.tools.tool_context import ToolContext
 from google.genai.types import Content, Part
-from pydantic import BaseModel
 
 from adk_extensions import RestatePlugin
 from adk_extensions import RestateSessionService
 
 APP_NAME = "agents"
 
+# MODELS
 class ChatMessage(BaseModel):
     """In this example, use the same session ID for multi-turn conversation, otherwise provide a new session ID for each message."""
     session_id: str = "123"
