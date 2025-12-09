@@ -1,10 +1,16 @@
-import restate
-import typing
 import asyncio
+import restate
 
 from datetime import timedelta
-from typing import Optional, Any
+from typing import Optional, Any, override, cast
 
+from google.adk.sessions import Session
+from google.adk.events.event import Event
+from google.adk.sessions.base_session_service import (
+    BaseSessionService,
+    ListSessionsResponse,
+    GetSessionConfig,
+)
 from google.adk.agents import BaseAgent, LlmAgent
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.plugins import BasePlugin
@@ -15,10 +21,86 @@ from google.adk.models.llm_response import LlmResponse
 from google.adk.models import LLMRegistry
 from google.adk.models.base_llm import BaseLlm
 from google.adk.flows.llm_flows.functions import generate_client_function_call_id
+
 from restate.extensions import current_context
 
-from middleware.restate_session_service import flush_session_state
 
+# Translation layer between Restate's K/V store and ADK's session service interface.
+class RestateSessionService(BaseSessionService):
+
+    def ctx(self) -> restate.ObjectContext:
+        return cast(restate.ObjectContext, current_context())
+
+    async def create_session(
+        self,
+        *,
+        app_name: str,
+        user_id: str,
+        state: Optional[dict[str, Any]] = None,
+        session_id: Optional[str] = None,
+    ) -> Session:
+
+        if session_id is None:
+            session_id = str(self.ctx().uuid())
+
+        session = await self.ctx().get(f"session_store::{session_id}", type_hint=Session) or Session(
+            app_name=app_name,
+            user_id=user_id,
+            id=session_id,
+            state=state or {},
+        )
+        self.ctx().set(f"session_store::{session_id}", session)
+        return session
+
+    async def get_session(
+        self,
+        *,
+        app_name: str,
+        user_id: str,
+        session_id: str,
+        config: Optional[GetSessionConfig] = None,
+    ) -> Optional[Session]:
+        # TODO : Handle config options
+        return await self.ctx().get(f"session_store::{session_id}", type_hint=Session) or Session(
+            app_name=app_name,
+            user_id=user_id,
+            id=session_id,
+        )
+
+    async def list_sessions(
+        self, *, app_name: str, user_id: Optional[str] = None
+    ) -> ListSessionsResponse:
+        state_keys = await self.ctx().state_keys()
+        sessions = []
+        for key in state_keys:
+            if key.startswith("session_store::"):
+                session = await self.ctx().get(key, type_hint=Session)
+                sessions.append(session)
+        return ListSessionsResponse(sessions=sessions)
+
+    async def delete_session(
+        self, *, app_name: str, user_id: str, session_id: str
+    ) -> None:
+        self.ctx().clear(f"session_store::{session_id}")
+
+    @override
+    async def append_event(self, session: Session, event: Event) -> Event:
+        """Appends an event to a session object."""
+        if event.partial:
+            return event
+        # For now, we also store temp state
+        event = self._trim_temp_delta_state(event)
+        self._update_session_state(session, event)
+        session.events.append(event)
+        return event
+
+async def flush_session_state(ctx: restate.ObjectContext, session: Session):
+    session_to_store = session.model_copy()
+    # Remove restate-specific context that got added by the plugin before storing
+    session_to_store.state.pop("restate_context", None)
+    deterministic_session = await ctx.run_typed("store session", lambda: session_to_store,
+                                                       restate.RunOptions(type_hint=Session))
+    ctx.set(f"session_store::{session.id}", deterministic_session)
 
 class RestatePlugin(BasePlugin):
     """A plugin to integrate Restate with the ADK framework."""
@@ -72,8 +154,7 @@ class RestatePlugin(BasePlugin):
         self._models.pop(callback_context.invocation_id, None)
         self._locks.pop(callback_context.invocation_id, None)
 
-        ctx = typing.cast(restate.ObjectContext, current_context())
-        print("Flushing session state to the session service...", flush=True)
+        ctx = cast(restate.ObjectContext, current_context())
         await flush_session_state(ctx, callback_context.session)
 
         return None
@@ -162,4 +243,6 @@ async def _generate_content_async(
     return await ctx.run_typed(
         "call LLM", call_llm, restate.RunOptions(max_attempts=max_attempts, initial_retry_interval=timedelta(seconds=1))
     )
+
+
 

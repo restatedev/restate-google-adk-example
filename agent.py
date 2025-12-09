@@ -9,8 +9,8 @@ from google.adk.tools.tool_context import ToolContext
 from google.genai.types import Content, Part
 from pydantic import BaseModel
 
-from middleware.restate_plugin import RestatePlugin
-from middleware.restate_session_service import RestateSessionService
+from adk_extensions import RestatePlugin
+from adk_extensions import RestateSessionService
 
 APP_NAME = "agents"
 
