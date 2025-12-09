@@ -17,7 +17,7 @@ class ChatMessage(BaseModel):
     """In this example, use the same session ID for multi-turn conversation, otherwise provide a new session ID for each message."""
 
     session_id: str = "123"
-    message: str = Field(default="Reimburse my hotel for my business trip of 5 nights for 800USD of 24/04/2025")
+    message: str = "Reimburse my hotel for my business trip of 5 nights for 800USD of 24/04/2025"
 
 
 # TOOLS
