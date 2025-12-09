@@ -1,6 +1,6 @@
 import restate
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict
 from google.adk import Runner
 from google.adk.agents.llm_agent import Agent
 from google.adk.apps import App
@@ -12,37 +12,55 @@ from adk_extensions import RestateSessionService
 
 APP_NAME = "agents"
 
+
 # MODELS
 class ChatMessage(BaseModel):
     """In this example, use the same session ID for multi-turn conversation, otherwise provide a new session ID for each message."""
+
     session_id: str = "123"
-    message: str = "Reimburse my hotel for my business trip of 5 nights for 800USD of 24/04/2025"
-
-
-class InsuranceClaim(BaseModel):
-    """Insurance claim data structure."""
-    date: str
-    amount: float
-    category: str
-    reason: str
+    message: str ="Reimburse my hotel for my business trip of 5 nights for 800USD of 24/04/2025",
 
 
 # TOOLS
-async def check_eligibility(tool_context: ToolContext, claim: InsuranceClaim) -> bool:
-    """Check claim eligibility (simplified version)."""
+async def check_eligibility(
+    tool_context: ToolContext, date: str, amount: float, category: str, reason: str
+) -> bool:
+    """Check claim eligibility (simplified version).
+
+    Args:
+        date: Date of the claim.
+        amount: Amount claimed.
+        category: Category of the claim.
+        reason: Reason for the claim.
+    """
     restate_context = tool_context.session.state["restate_context"]
 
-    def is_eligible(claim: InsuranceClaim) -> bool:
+    async def is_eligible(date: str, amount: float, category: str, reason: str) -> bool:
         # ... call external systems or databases to verify eligibility ...
         return True
 
     return await restate_context.run_typed(
-        "Check eligibility", is_eligible, claim=claim
+        "Check eligibility",
+        is_eligible,
+        date=date,
+        amount=amount,
+        category=category,
+        reason=reason,
     )
 
 
-async def human_approval(tool_context: ToolContext, claim: InsuranceClaim) -> str:
-    """Ask for human approval for high-value claims."""
+async def human_approval(
+    tool_context: ToolContext, date: str, amount: float, category: str, reason: str
+) -> str:
+    """
+    Ask for human approval for high-value claims.
+
+    Args:
+        date: Date of the claim.
+        amount: Amount claimed.
+        category: Category of the claim.
+        reason: Reason for the claim.
+    """
     restate_context = tool_context.session.state["restate_context"]
 
     # Create an awakeable for human approval
@@ -51,8 +69,11 @@ async def human_approval(tool_context: ToolContext, claim: InsuranceClaim) -> st
     # Request human review
     def request_review():
         # Notify human reviewer (e.g., via email or dashboard)
-        print(f"""🔔 Review requested for claim {claim.model_dump_json()}. Submit via: \n ")
-              curl localhost:8080/restate/awakeables/{approval_id}/resolve --json 'true'""")
+        print(
+            f"""🔔 Review requested for claim for {reason}. Submit via: \n ")
+              curl localhost:8080/restate/awakeables/{approval_id}/resolve --json 'true'"""
+        )
+
     await restate_context.run_typed("Request review", request_review)
 
     # Wait for human approval

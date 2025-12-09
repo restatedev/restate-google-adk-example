@@ -43,7 +43,9 @@ class RestateSessionService(BaseSessionService):
         if session_id is None:
             session_id = str(self.ctx().uuid())
 
-        session = await self.ctx().get(f"session_store::{session_id}", type_hint=Session) or Session(
+        session = await self.ctx().get(
+            f"session_store::{session_id}", type_hint=Session
+        ) or Session(
             app_name=app_name,
             user_id=user_id,
             id=session_id,
@@ -61,7 +63,9 @@ class RestateSessionService(BaseSessionService):
         config: Optional[GetSessionConfig] = None,
     ) -> Optional[Session]:
         # TODO : Handle config options
-        return await self.ctx().get(f"session_store::{session_id}", type_hint=Session) or Session(
+        return await self.ctx().get(
+            f"session_store::{session_id}", type_hint=Session
+        ) or Session(
             app_name=app_name,
             user_id=user_id,
             id=session_id,
@@ -94,13 +98,16 @@ class RestateSessionService(BaseSessionService):
         session.events.append(event)
         return event
 
+
 async def flush_session_state(ctx: restate.ObjectContext, session: Session):
     session_to_store = session.model_copy()
     # Remove restate-specific context that got added by the plugin before storing
     session_to_store.state.pop("restate_context", None)
-    deterministic_session = await ctx.run_typed("store session", lambda: session_to_store,
-                                                       restate.RunOptions(type_hint=Session))
+    deterministic_session = await ctx.run_typed(
+        "store session", lambda: session_to_store, restate.RunOptions(type_hint=Session)
+    )
     ctx.set(f"session_store::{session.id}", deterministic_session)
+
 
 class RestatePlugin(BasePlugin):
     """A plugin to integrate Restate with the ADK framework."""
@@ -241,8 +248,9 @@ async def _generate_content_async(
             await a_gen.aclose()
 
     return await ctx.run_typed(
-        "call LLM", call_llm, restate.RunOptions(max_attempts=max_attempts, initial_retry_interval=timedelta(seconds=1))
+        "call LLM",
+        call_llm,
+        restate.RunOptions(
+            max_attempts=max_attempts, initial_retry_interval=timedelta(seconds=1)
+        ),
     )
-
-
-

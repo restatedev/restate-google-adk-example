@@ -2,21 +2,28 @@
 
 **This integration is work-in-progress.**
 
-AI agent examples using [Restate](https://docs.restate.dev/ai) for durable execution and [Google Agent Development Kit](https://google.github.io/adk-docs/) for AI workflows.
+This project demonstrates how to build resilient AI agents using [Restate](https://docs.restate.dev/ai) and [Google's Agent Development Kit](https://google.github.io/adk-docs/). The example shows a **claims processing agent** that can handle insurance or expense reimbursement requests with human approval workflows.
 
-## Features
-Restate makes AI agents and workflows innately resilient. Restate provides the reliability infrastructure you need to run AI workloads in production - from simple LLM chains to complex multi-agent systems.
+## What is Restate?
 
-Restate makes building AI workflows and agent easy:
-- ✅ Recovery from failures: never lose agent progress
-- ✅ Built-in session management: store context in Restate’s K/V store
-- ✅ Complete observability: trace every decision and fine-grained steps in tool executions
-- ✅ Human approvals and long-running workflows: pause for approvals, feedback, or data input
-- ✅ Resilient communication for multi-agent systems
-- ✅ Task orchestration: parallelization, pause/cancel/kill tasks, racing agents,...
-- ✅ Timeouts, rollbacks, custom logic, and more
+**Restate** is a platform that makes AI agents bulletproof. Think of it as a safety net for your AI workflows.
 
-Whether you’re building chatbots, autonomous agents, or AI-powered workflows, Restate handles the complexity of distributed execution so you can focus on your AI logic.
+### The Problem
+Traditional AI agents are fragile:
+- ❌ Crash and lose all progress when something goes wrong
+- ❌ Can't handle long-running tasks that need human input
+- ❌ Difficult to debug when they fail
+- ❌ No way to pause, resume, or rollback operations
+
+### The Solution: Durable Execution
+Restate provides **durable execution** - your AI agents can:
+- ✅ **Never lose progress** - if your agent crashes, it picks up exactly where it left off
+- ✅ **Wait for human approval** - pause execution for days/weeks until a human approves
+- ✅ **Store context safely** - agent memory persists across restarts
+- ✅ **Complete observability** - see exactly what your agent did and when
+- ✅ **Handle failures gracefully** - automatic retries, timeouts, and error recovery
+- ✅ **Run complex workflows** - orchestrate multiple agents, run tasks in parallel
+
 
 ## Prerequisites
 - [Docker](https://www.docker.com/get-started/)
@@ -26,31 +33,44 @@ Whether you’re building chatbots, autonomous agents, or AI-powered workflows, 
 
 ## Quick Start
 
-Export your Google API key:
-```bash
-export GOOGLE_API_KEY=your-key
-````
+Follow these steps to run the claims processing agent:
 
-Run the application:
+### 1. Set up your Google API key
+Get a free API key from [Google AI Studio](https://aistudio.google.com/app/api-keys), then:
 ```bash
-uv run . 
+export GOOGLE_API_KEY=your-api-key
 ```
 
-The agent runs on `http://localhost:9080`
+### 2. Start the AI agent
+```bash
+uv run .
+```
+Your agent is now running on `http://localhost:9080` and ready to process claims!
 
-Start Restate:
+### 3. Start Restate (the durability engine)
+Open a new terminal and run:
 ```bash
 docker run --name restate_dev --rm \
 -p 8080:8080 -p 9070:9070 -p 9071:9071 \
 --add-host=host.docker.internal:host-gateway \
 docker.restate.dev/restatedev/restate:latest
 ```
+This starts Restate's runtime that will cooperate with your agent, to make it durable.
 
-Go to the Restate UI at `http://localhost:9070`. Click on `register deployment`. And fill in the agent url `http://host.docker.internal:9080`.
+### 4. Register your agent in Restate
+1. Open the Restate UI: `http://localhost:9070`
+2. Click **"Register Deployment"**
+3. Enter your agent URL: `http://host.docker.internal:9080`
+4. Click **"Register"**
 
 ![Register service](https://raw.githubusercontent.com/restatedev/ai-examples/refs/heads/main/google-adk/example/docs/images/register_deployment.png)
 
-Click on the `run` handler of the `ClaimAgent` service, fill in the `key` field with the customer ID, and send the default request:
+### 5. Try your first claim!
+1. Click on the **"run"** function of the `ClaimAgent` service
+2. Fill in the `key` field with any customer ID (e.g., "customer123")
+3. Click **"Send"** with the default request
+
+This sends a simple reimbursement request to your agent!
 
 <img src="doc/playground.png" alt="Send request" width="1000px"/>
 
@@ -58,33 +78,61 @@ In the invocations tab, you see the execution journal when clicking on the invoc
 
 <img src="doc/journal.png" alt="See journal" width="1000px"/>
 
-## Try out Durable Execution with a human approval example
+## 🚀 See Durable Execution in Action!
 
-You can try out durable execution with a human approval example. Send a request for more than 1000USD, for example:
-`"Reimburse my hotel for my business trip of 5 nights for 1800USD of 24/04/2025"`
+Here's where Restate's magic becomes obvious. Let's trigger a workflow that requires human approval:
 
-The agent will pause and wait for human approval before proceeding with the reimbursement.
+### Try a High-Value Claim
+In the Restate UI, send this request instead of the default one:
+```
+"Reimburse my hotel for my business trip of 5 nights for 1800USD of 24/04/2025"
+```
+
+**What happens:**
+1. ✅ Agent processes the request
+2. 🛑 Agent detects high value ($1,800 > $1,000 threshold)
+3. ⏸️ **Agent PAUSES and waits for human approval**
 
 <img src="doc/suspension.png" alt="Waiting for approval" width="1000px"/>
 
-While the agent is running, you can kill it (CTRL+C) and restart it. Once we approve the request, the agent will continue its execution from where it left off.
+### Test the Durability
+Here's the cool part - **try to break it:**
+1. ❌ Kill the agent process (Ctrl+C)
+2. ❌ Cut off network access to the LLM
+3. ❌ Wait for hours/days
 
-To approve the request, copy over the curl command that was printed in the service logs, and run it in your terminal. For example: 
+**The agent state is safely stored in Restate!**
 
-```bash
-curl localhost:8080/restate/awakeables/sign_.../resolve --json 'true'
-```
+### Approve the request
+1. Check your agent's terminal output - it printed a curl command like:
+   ```bash
+   curl localhost:8080/restate/awakeables/sign_.../resolve --json 'true'
+   ```
+2. Copy and run that curl command
+3. 🎉 **The agent wakes up and completes the reimbursement!**
 
-After approval, the agent will continue its execution and complete the reimbursement process.
+<img src="doc/completed.png" alt="Completed after approval" width="1000px"/>
 
-<img src="doc/completed.png" alt="Waiting for approval" width="1000px"/>
+### What Just Happened?
+- ✅ **Durable state**: Agent's memory survived crashes and restarts
+- ✅ **Human-in-the-loop**: Workflow paused for real human decision
+- ✅ **Automatic resumption**: Agent continued exactly where it left off
+- ✅ **Complete audit trail**: Every step is logged and visible
 
-**Note**: While the agent is waiting for the approval, it will automatically suspend itself after one minute.
-Restate stores the agent state durably, so you can stop the agent process and restart it later without losing progress.
-Once Restate receives the approval, it will wake up the agent and let it continue from where it left off.
+This is the power of durable execution - your AI agents become as reliable as traditional enterprise software!
 
+## Build Your Own Agent
+This example shows just the basics. With Restate, you can build:
+- **Multi-agent systems** with resilient communication over HTTP
+- **Long-running workflows** that span days or weeks
+- **Complex approval chains** with multiple stakeholders
+- **Fault-tolerant AI pipelines** that handle any failure
+- **Distributed AI systems** that scale horizontally
 
 ## Next Steps
 
-- Learn more about building resilient AI applications from the [Restate AI documentation](https://docs.restate.dev/ai).
-- Check out the [Google ADK documentation](https://google.github.io/adk-docs/) to learn more about building AI workflows with Google ADK.
+Now that you've seen durable execution in action, here's how to continue:
+
+- **[Restate AI Documentation](https://docs.restate.dev/ai)** - Learn to build production-ready AI agents
+- **[Google ADK Documentation](https://google.github.io/adk-docs/)** - Master Google's Agent Development Kit
+
