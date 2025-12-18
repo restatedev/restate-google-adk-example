@@ -27,7 +27,7 @@ With Restate, your AI agents can:
 
 Follow these steps to run the claims processing agent:
 
-<img src="doc/overview.png" alt="overview" width="1000px"/>
+<img src="doc/overview.png" alt="overview" width="600px"/>
 
 ### 1. Set up your Google API key
 Get a free API key from [Google AI Studio](https://aistudio.google.com/app/api-keys), then:
@@ -61,7 +61,7 @@ It will store its data in a Docker volume called `restate-data` to persist acros
 3. Enter your agent URL: `http://host.docker.internal:9080`
 4. Click **"Register"**
 
-![Register service](https://raw.githubusercontent.com/restatedev/ai-examples/refs/heads/main/google-adk/example/docs/images/register_deployment.png)
+<img src="doc/registration.png" alt="Registration" width="700px"/>
 
 ### 5. Try your first claim!
 1. Click on the **"run"** function of the `ClaimAgent` service
@@ -82,7 +82,10 @@ Let's see how Restate makes your AI agent durable and reliable.
  
 Let's trigger a workflow that requires human approval. In the Restate UI, send this request instead of the default one:
 ```
-"Reimburse my hotel for my business trip of 5 nights for 1800USD of 24/04/2025"
+{
+  "message": "Reimburse my hotel for my business trip of 5 nights for 1800USD of 24/04/2025",
+  "session_id": "123"
+}
 ```
 
 The agent will process the request and then pause, waiting for human approval.
@@ -99,8 +102,8 @@ Copy over the command, but **don't run it yet**.
 
 First, try to break the agent:
 1. ❌ Restart the agent process (Ctrl+C)
-2. ❌ Restart Restate (Ctrl+C)
-3. ❌ Wait for hours/days
+2. ❌ Wait for hours/days
+3. ❌ Restart Restate (requires volume attached to the container) (Ctrl+C)
 
 **The agent state is safely stored in Restate!** 
 At any point in time, you can execute the curl command to approve the reimbursement and let the agent continue.
@@ -111,15 +114,15 @@ As you see, even after crashing and waiting, the agent wakes up and resumes exac
 
 ## Build Your Own Agent
 This example shows just the basics. With Restate, you can build:
-- [**Multi-agent systems**](https://github.com/restatedev/ai-examples/blob/main/google-adk/example/app/multi_agent.py) with resilient communication over HTTP
+- [**Multi-agent systems**](https://github.com/restatedev/ai-examples/blob/main/google-adk/tour-of-agents/app/multi_agent.py) with resilient communication over HTTP
 - **Long-running workflows** that span days or weeks
 - **Complex approval chains** with timeouts and escalations
-- [**Parallel task execution**](https://github.com/restatedev/ai-examples/blob/main/google-adk/example/app/parallel_agents.py) for faster processing with deterministic recovery
+- [**Parallel task execution**](https://github.com/restatedev/ai-examples/blob/main/google-adk/tour-of-agents/app/parallel_agents.py) for faster processing with deterministic recovery
 - **Stateful, serverless agents** that scale on demand
 
 ## Next Steps
 Here are some resources to help you get started:
-- **[Google ADK + Restate examples](https://github.com/restatedev/ai-examples/tree/main/google-adk/example):** Explore more sample agents
+- **[Google ADK + Restate: tutorial](https://docs.restate.dev/tour/google-adk):** Explore more sample agents and learn how to build resilient multi-agent systems, human-in-the-loop workflows, and parallel execution.
 - **[Restate AI Documentation](https://docs.restate.dev/ai)** - Learn to build durable AI agents
 - **[Google ADK Documentation](https://google.github.io/adk-docs/)** - Learn more about Google's Agent Development Kit
 
