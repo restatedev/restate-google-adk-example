@@ -47,6 +47,8 @@ Open a new terminal and run:
 docker run  --name restate --rm \
   -p 8080:8080 \
   -p 9070:9070 \
+  -v restate-data:/restate-data \
+  -e RESTATE_NODE_NAME=restate-1 \
   --add-host host.docker.internal:host-gateway \
   docker.restate.dev/restatedev/restate:latest
 ```
