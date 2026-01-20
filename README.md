@@ -16,6 +16,9 @@ With Restate, your AI agents can:
 - ✅ **Handle failures gracefully** - automatic retries, timeouts, and error recovery
 - ✅ **Run complex workflows** - orchestrate multiple agents, run tasks in parallel
 
+Watch the intro video:
+
+[![Resilient AI Agents with Google ADK and Restate](https://img.youtube.com/vi/TkGFdildEXk/maxresdefault.jpg)](https://www.youtube.com/watch?v=TkGFdildEXk)
 
 ## Prerequisites
 - [Docker](https://www.docker.com/get-started/)
