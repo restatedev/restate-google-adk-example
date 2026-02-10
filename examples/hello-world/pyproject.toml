@@ -1,0 +1,10 @@
+[project]
+name = "hello-world"
+version = "0.1.0"
+description = "A minimal durable AI agent using Google ADK and Restate"
+requires-python = ">=3.12"
+dependencies = [
+    "hypercorn>=0.17.3",
+    "restate-sdk[serde]>=0.14.0",
+    "google-adk>=1.18.0"
+]
