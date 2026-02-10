@@ -1,0 +1,11 @@
+[project]
+name = "claims-processing"
+version = "0.1.0"
+description = "A claims processing agent with human approval using Google ADK and Restate"
+requires-python = ">=3.11"
+dependencies = [
+    "hypercorn>=0.17.3",
+    "pydantic>=2.10.6",
+    "restate-sdk[serde]>=0.14.0",
+    "google-adk>=1.18.0"
+]

@@ -46,8 +46,8 @@ async def human_approval(
     def request_review():
         # Notify human reviewer (e.g., via email or dashboard)
         print(
-            f"""🔔 Review requested for claim for {reason}. Submit via: \n ")
-              curl localhost:8080/restate/awakeables/{approval_id}/resolve --json 'true'"""
+            f"Review requested for claim for {reason}. Submit via:\n"
+            f"  curl localhost:8080/restate/awakeables/{approval_id}/resolve --json 'true'"
         )
     await restate_object_context().run_typed("Request review", request_review)
 
@@ -60,8 +60,8 @@ agent = Agent(
     model="gemini-2.5-flash",
     name="claim_approval_agent",
     description="Insurance claim evaluation agent that handles human approval workflows.",
-    instruction="""You are an insurance claim evaluation agent. Use these rules: 
-    - if the amount is more than 1000, ask for human approval using tools; 
+    instruction="""You are an insurance claim evaluation agent. Use these rules:
+    - if the amount is more than 1000, ask for human approval using tools;
     - if the amount is less than 1000, use the check_eligibility tool and then decide by yourself.""",
     tools=[human_approval, check_eligibility],
 )
