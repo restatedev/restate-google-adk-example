@@ -136,7 +136,7 @@ Navigate to `http://localhost:9070` and click on the Invocation tab and then on 
 | Human-in-the-loop | `restate_object_context().awakeable()` | Pauses execution until an external signal (e.g. human approval) |
 | Persistent sessions | `RestateSessionService()` | Agent memory and conversation state survive restarts |
 | Durable LLM calls | `RestatePlugin()` | LLM calls are journaled with automatic retries |
-| Multi-agent communication | `ctx.service_call()` | Durable cross-agent HTTP calls with guaranteed delivery |
+| Multi-agent communication | `restate_object_context.service_call()` | Durable cross-agent HTTP calls with guaranteed delivery |
 | Parallel execution | `restate.gather()` | Run tools/agents concurrently with deterministic recovery |
 
 ## Advanced example: insurance agent
