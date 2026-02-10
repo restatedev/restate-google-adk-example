@@ -37,7 +37,7 @@ Other install methods: [Brew, npm, binary downloads](https://docs.restate.dev/de
 
 ## Quick Start
 
-This minimal example creates a durable weather agent. The full code is in [`examples/hello-world/agent.py`](examples/hello-world/).
+This minimal example creates a durable weather agent. The full code is in [`examples/hello-world/agent.py`](examples/hello-world/agent.py).
 
 ```python
 import restate
